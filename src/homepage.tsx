@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Alert, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type HomePageProps = {
     isLoggedIn: boolean;

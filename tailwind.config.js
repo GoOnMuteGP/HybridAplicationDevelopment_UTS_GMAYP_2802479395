@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
-  presets: [require("nativewind/preset")],
+  content: ["./src/**/*.{js,ts,jsx,tsx}"],presets: [require("nativewind/preset")],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -13,10 +13,10 @@ module.exports = {
         muted: "#cbc3d7",
       },
       fontFamily: {
-        arial : ["Arial", "sans-serif"],
+        arial: ["Arial", "sans-serif"],
         monospace: ["Courier New", "monospace"],
       },
     },
   },
   plugins: [],
-}
+};
