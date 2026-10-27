@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
-export default function Login() {
+type LoginScreenProps = {
+    onBack: () => void;
+    onLoginSuccess: () => void;
+};
+
+export default function LoginScreen({ onBack, onLoginSuccess, }: LoginScreenProps) {
     const [isSignUp, setIsSignUp] = useState(false);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -11,26 +16,73 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+    const isValidPassword =
+        password.length >= 8 &&
+        /[A-Za-z]/.test(password) &&
+        /\d/.test(password) &&
+        /[^A-Za-z0-9\s]/.test(password);
+
+    const isFormValid =
+        isValidEmail &&
+        isValidPassword &&
+        (!isSignUp || name.trim() !== "");
+
     const handleSubmit = () => {
         setError("");
 
         if (isSignUp && name.trim() === "") {
+            Alert.alert("Validasi Gagal", "Nama wajib diisi.");
             setError("Nama wajib diisi.");
             return;
         }
 
         if (email.trim() === "") {
+            Alert.alert("Validasi Gagal", "Email wajib diisi.");
             setError("Email wajib diisi.");
             return;
         }
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+            Alert.alert("Validasi Gagal", "Format email tidak valid.");
             setError("Format email tidak valid.");
             return;
         }
 
         if (password.length < 8) {
+            Alert.alert(
+                "Validasi Password",
+                "Password minimal 8 karakter. Saat ini password kamu belum memenuhi panjang minimum."
+            );
             setError("Password minimal 8 karakter.");
+            return;
+        }
+
+        if (!/[A-Za-z]/.test(password)) {
+            Alert.alert(
+                "Validasi Password",
+                "Password harus memiliki minimal 1 huruf."
+            );
+            setError("Password harus memiliki minimal 1 huruf.");
+            return;
+        }
+
+        if (!/\d/.test(password)) {
+            Alert.alert(
+                "Validasi Password",
+                "Password harus memiliki minimal 1 angka, misalnya 1, 2, atau 3."
+            );
+            setError("Password harus memiliki minimal 1 angka.");
+            return;
+        }
+
+        if (!/[^A-Za-z0-9\s]/.test(password)) {
+            Alert.alert(
+                "Validasi Password",
+                "Password harus memiliki minimal 1 tanda baca dan 1 simbol, misalnya !, @, atau #."
+            );
+            setError("Password harus memiliki minimal 1 tanda baca dan 1 simbol, misalnya !, @, atau #.");
             return;
         }
 
@@ -38,13 +90,7 @@ export default function Login() {
 
         setTimeout(() => {
             setIsLoading(false);
-
-            Alert.alert(
-                "Informasi",
-                isSignUp
-                    ? "Form pendaftaran valid. Fitur pembuatan akun belum terhubung ke backend."
-                    : "Form login valid. Fitur login belum terhubung ke backend."
-            );
+            onLoginSuccess();
         }, 500);
     };
 
@@ -177,7 +223,7 @@ export default function Login() {
                             <Pressable
                                 style={[
                                     styles.submitButton,
-                                    isLoading && styles.disabledButton,
+                                    (!isFormValid || isLoading) && styles.disabledButton,
                                 ]}
                                 onPress={handleSubmit}
                                 disabled={isLoading}

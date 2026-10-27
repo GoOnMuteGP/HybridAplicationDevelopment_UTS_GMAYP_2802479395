@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { Alert, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+type HomePageProps = {
+    isLoggedIn: boolean;
+    onLoginPress: () => void;
+    onLogout: () => void;
+};
+
 const dates = [
     { day: "MON", date: 12 },
     { day: "TUE", date: 13 },
@@ -76,7 +82,11 @@ const formatPrice = (price: number) => {
     return `Rp${price.toLocaleString("id-ID")}`;
 };
 
-export default function Homepage() {
+export default function Homepage({
+    isLoggedIn,
+    onLoginPress,
+    onLogout,
+}: HomePageProps) {
     const [selectedDate, setSelectedDate] = useState(12);
     const [selectedGender, setSelectedGender] = useState("All");
     const [selectedStatus, setSelectedStatus] = useState("All");
@@ -91,15 +101,46 @@ export default function Homepage() {
         return selectedStatus === "All" || schedule.status === selectedStatus;
     });
 
+    const requireLogin = (feature: string) => {
+        if (!isLoggedIn) {
+            Alert.alert(
+                "Login Required",
+                `Please login to access ${feature}.`,
+                [
+                    {
+                        text: "Cancel",
+                        style: "cancel",
+                    },
+                    {
+                        text: "Login",
+                        onPress: onLoginPress,
+                    },
+                ]
+            );
+
+            return false;
+        }
+
+        return true;
+    };
+
     const handleNavigation = (tab: string) => {
         setSelectedTab(tab);
 
-        if (tab !== "Home") {
-            Alert.alert(
-                tab,
-                `Halaman ${tab} belum dihubungkan ke navigasi.`
-            );
+        if (tab === "Home") {
+            return;
         }
+
+        if (["Profile", "Wallet", "Dates"].includes(tab)) {
+            if (!requireLogin(tab)) {
+                return;
+            }
+        }
+
+        Alert.alert(
+            tab,
+            `Halaman ${tab} belum dihubungkan ke navigasi.`
+        );
     };
 
     const handleBooking = (ally: typeof allies[number]) => {
@@ -208,11 +249,23 @@ export default function Homepage() {
                     </View>
 
                     <TouchableOpacity
-                        style={styles.profileButton}
-                        onPress={() => handleNavigation("Profile")}
+                        style={[
+                            styles.profileButton,
+                            !isLoggedIn && styles.profileButtonGuest,
+                        ]}
+                        onPress={() => {
+                            if (!isLoggedIn) {
+                                onLoginPress();
+                            } else {
+                                handleNavigation("Profile");
+                            }
+                        }}
                     >
-                        <Text style={styles.profileInitial}>U</Text>
+                        <Text style={styles.profileInitial}>
+                            {isLoggedIn ? "U" : "Login"}
+                        </Text>
                     </TouchableOpacity>
+
                 </View>
             </View>
 
@@ -224,10 +277,14 @@ export default function Homepage() {
                 <View style={styles.container}>
                     <View style={styles.topInfo}>
                         <View>
-                            <Text style={styles.eyebrow}>YOUR PERSONAL UNIVERSE</Text>
-                            <Text style={styles.greeting}>Welcome back, User</Text>
+                            <Text style={styles.eyebrow}>
+                                YOUR PERSONAL UNIVERSE
+                            </Text>
+                            <Text style={styles.greeting}>
+                                {isLoggedIn ? "Welcome back, User" : "Welcome to Cosmos Allies"}
+                            </Text>
                             <Text style={styles.greetingSubtitle}>
-                                Your next connection is waiting for you.
+                                {isLoggedIn ? "Your next connection is waiting for you." : "Login to start your journey with us."}
                             </Text>
                         </View>
 
@@ -627,12 +684,19 @@ const styles = StyleSheet.create({
     profileButton: {
         width: 32,
         height: 32,
+        paddingHorizontal: 10,
         borderRadius: 16,
         backgroundColor: "#7256A6",
         alignItems: "center",
         justifyContent: "center",
         borderWidth: 1,
         borderColor: "#A18ACD",
+        zIndex: 20,
+        elevation: 5,
+    },
+    profileButtonGuest: {
+        width: 48,
+        paddingHorizontal: 10,
     },
     profileInitial: {
         color: "#FFFFFF",
